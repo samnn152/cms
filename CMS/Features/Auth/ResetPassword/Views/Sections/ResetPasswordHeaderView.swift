@@ -17,9 +17,7 @@ struct ResetPasswordHeaderView: View {
 			HStack {
 				Image("ImageLogoFull")
 				Spacer()
-				Circle()
-					.fill(.gray)
-					.frame(width: 40, height: 40)
+				LanguagePickerButton()
 			}
 			VStack(alignment: .leading) {
 				HStack {
