@@ -1,0 +1,8 @@
+.DS_Store
+.derivedData/
+.home/
+.swiftpm/
+.tmp/
+.env
+.env.*
+!.env.example

@@ -16,4 +16,9 @@ final class SavedUserListStore : ObservableObject {
 		self.savedUsersService = savedUsersService
 		state.data = savedUsersService.savedUsers
 	}
+
+	func delete(user: User) {
+		savedUsersService.delete(user: user)
+		state.data = savedUsersService.savedUsers
+	}
 }

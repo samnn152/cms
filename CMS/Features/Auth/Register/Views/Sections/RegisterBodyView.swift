@@ -28,31 +28,48 @@ struct RegisterFormView: View {
 	
 	@EnvironmentObject
 	private var router: AppRouter
+
+	@Environment(\.openURL)
+	private var openURL
 	
 	var body: some View {
-		VStack(spacing: 8) {
-			Circle()
-				.frame(width: 96, height: 96)
-			TextField("Email", text: $store.state.email)
-				.frame(height: 40)
-			TextField("MSSV (Không bắt buộc)", text: $store.state.studentID)
-				.frame(height: 40)
-			SecureField("Mật khẩu", text: $store.state.password)
-				.frame(height: 40)
-			SecureField("Nhập lại mật khẩu", text: $store.state.confirmPassword)
-				.frame(height: 40)
-			Button("Đăng ký") {
-				
-			}.buttonStyle(.borderedProminent)
-		}
-		VStack(spacing: 8){
-			Text("Hoặc đăng ký bằng")
-				.font(.callout)
-			HStack(spacing: 16) {
-				Circle().frame(width: 48, height: 48)
-				Circle().frame(width: 48, height: 48)
-				Circle().frame(width: 48, height: 48)
+		VStack(spacing: 20) {
+			VStack(spacing: 8) {
+				UserAvatarView(avatarURL: nil, size: 96)
+				TextField("Email", text: $store.state.email)
+					.textInputAutocapitalization(.never)
+					.autocorrectionDisabled()
+					.frame(height: 40)
+				TextField("MSSV (Không bắt buộc)", text: $store.state.studentID)
+					.textInputAutocapitalization(.never)
+					.autocorrectionDisabled()
+					.frame(height: 40)
+				SecureField("Mật khẩu", text: $store.state.password)
+					.frame(height: 40)
+				SecureField("Nhập lại mật khẩu", text: $store.state.confirmPassword)
+					.frame(height: 40)
+				Button("Đăng ký") {
+					store.register()
+				}
+				.buttonStyle(.borderedProminent)
+				.disabled(store.state.status.isLoading)
+			}
+
+			VStack(spacing: 8) {
+				Text("Hoặc đăng ký bằng")
+					.font(.callout)
+				SocialAuthButtonsRow { provider in
+					openSocialLogin(provider)
+				}
 			}
 		}
+	}
+
+	private func openSocialLogin(_ provider: SocialProvider) {
+		guard let url = APIAuthService.makeOAuthStartURL(for: provider) else {
+			return
+		}
+
+		openURL(url)
 	}
 }

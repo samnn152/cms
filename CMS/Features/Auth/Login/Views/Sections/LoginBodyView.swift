@@ -35,53 +35,71 @@ struct LoginFormView: View {
 	
 	@EnvironmentObject
 	private var router: AppRouter
+
+	@Environment(\.openURL)
+	private var openURL
 	
 	var loggedAccountName: String? {
 		store.state.loggedAccountName
 	}
 	
 	var body: some View {
-		VStack(spacing: 8) {
-			Circle()
-				.frame(width: 96, height: 96)
-			if loggedAccountName != nil {
-				HStack(spacing: 4) {
-					Text(loggedAccountName!)
-						.font(.title2).bold()
-					Button {
-						router.pushReplacement(to: .changeAccount)
-					} label: {
-						Image(systemName: "arrow.triangle.2.circlepath")
+		VStack(spacing: 20) {
+			VStack(spacing: 8) {
+				UserAvatarView(avatarURL: store.state.avatarURL, size: 96)
+				if let loggedAccountName {
+					HStack(spacing: 4) {
+						Text(loggedAccountName)
+							.font(.title2).bold()
+						Button {
+							router.pushReplacement(to: .changeAccount)
+						} label: {
+							Image(systemName: "arrow.triangle.2.circlepath")
+						}
 					}
 				}
 			}
-		}
-		VStack(spacing: 8) {
-			if loggedAccountName == nil {
-				TextField("Tên đăng nhập", text: $store.state.username)
+
+			VStack(spacing: 8) {
+				if loggedAccountName == nil {
+					TextField("Email hoặc MSSV", text: $store.state.username)
+						.textInputAutocapitalization(.never)
+						.autocorrectionDisabled()
+						.frame(height: 40)
+				}
+				SecureField("Mật khẩu", text: $store.state.password)
 					.frame(height: 40)
+				HStack {
+					Button("Đăng nhập") {
+						store.login()
+					}
+					.buttonStyle(.borderedProminent)
+					.disabled(store.state.status.isLoading)
+
+					Spacer()
+
+					Button("Quên mật khẩu") {
+						router.push(to: .forgotPassword)
+					}
+				}
 			}
-			SecureField("Mật khẩu", text: $store.state.password)
-				.frame(height: 40)
-			HStack {
-				Button("Đăng nhập") {
-					
-				}.buttonStyle(.borderedProminent)
-				Spacer()
-				Button("Quên mật khẩu") {
-					router.push(to: .forgotPassword)
+
+			VStack(spacing: 8) {
+				Text("Hoặc đăng nhập bằng")
+					.font(.callout)
+				SocialAuthButtonsRow { provider in
+					openSocialLogin(provider)
 				}
 			}
 		}
-		VStack(spacing: 8){
-			Text("Hoặc đăng nhập bằng")
-				.font(.callout)
-			HStack(spacing: 16) {
-				Circle().frame(width: 48, height: 48)
-				Circle().frame(width: 48, height: 48)
-				Circle().frame(width: 48, height: 48)
-			}
+	}
+
+	private func openSocialLogin(_ provider: SocialProvider) {
+		guard let url = APIAuthService.makeOAuthStartURL(for: provider) else {
+			return
 		}
+
+		openURL(url)
 	}
 }
 
@@ -90,7 +108,7 @@ struct LoginChangeAccountView: View {
 	
 	@StateObject
 	private var savedUserListStore: SavedUserListStore = SavedUserListStore(
-	  savedUsersService: MockSavedUsersService()
+	  savedUsersService: LocalSavedUsersService()
 	)
 	
 	@EnvironmentObject
@@ -101,14 +119,24 @@ struct LoginChangeAccountView: View {
 			Text("Chọn tài khoản")
 			LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
 				ForEach(savedUserListStore.state.data) { user in
-					Button {
-						store.changeAccount(user: user)
-						router.pushReplacement(to: .login)
-					} label: {
-						VStack {
-							Circle().frame(width: 48, height: 48)
-							Text(user.displayName)
+					HStack {
+						Button {
+							store.changeAccount(user: user)
+							router.pushReplacement(to: .login)
+						} label: {
+							VStack {
+								UserAvatarView(avatarURL: user.avatarURL, size: 48)
+								Text(user.displayName)
+							}
 						}
+						Spacer()
+						Button {
+							savedUserListStore.delete(user: user)
+						} label: {
+							Image(systemName: "trash")
+								.foregroundColor(.red)
+						}
+						.buttonStyle(.borderless)
 					}
 				}
 			}

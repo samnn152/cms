@@ -28,4 +28,12 @@ final class MockSavedUsersService: SavedUsersServiceProtocol {
 			users.append(user)
 		}
 	}
+
+	func delete(user: User) {
+		users.removeAll { saved in
+			saved.id == user.id
+		}
+	}
+
+	func reload() {}
 }

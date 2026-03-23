@@ -11,4 +11,8 @@ protocol SavedUsersServiceProtocol {
 	var savedUsers: [User] { get }
 	
 	func save(user: User)
+	
+	func delete(user: User)
+	
+	func reload()
 }

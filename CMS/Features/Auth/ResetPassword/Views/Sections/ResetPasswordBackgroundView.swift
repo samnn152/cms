@@ -13,8 +13,6 @@ struct ResetPasswordBackgroundView: View {
 			GeometryReader { geometry in
 				let hGutter = 16.0
 				let hSpacing = (geometry.size.height - hGutter * 3) / 4
-				let wGutter = 16.0
-				let wSpacing = (geometry.size.width - wGutter * 4) / 3
 				
 				let firstCirclePosition = CGPoint(
 					x: geometry.size.width / 2,

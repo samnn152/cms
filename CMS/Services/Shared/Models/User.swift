@@ -5,14 +5,31 @@
 //  Created by Ngô Ngọc Sâm on 19/2/26.
 //
 
-enum UserRole: String, Equatable {
+enum UserRole: String, Codable, Equatable {
 	case admin
-	case lead
+	case leader
 	case member
 	case guest
+
+	init(from decoder: Decoder) throws {
+		let container = try decoder.singleValueContainer()
+		let rawValue = try container.decode(String.self)
+
+		switch rawValue {
+		case "lead":
+			self = .leader
+		default:
+			self = UserRole(rawValue: rawValue) ?? .guest
+		}
+	}
+
+	func encode(to encoder: Encoder) throws {
+		var container = encoder.singleValueContainer()
+		try container.encode(rawValue)
+	}
 }
 
-struct User: Equatable, Identifiable {
+struct User: Codable, Equatable, Identifiable {
 	var id: String
 	
 	var email: String

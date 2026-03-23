@@ -24,17 +24,28 @@ final class LoginStore : ObservableObject {
 	}
 	
 	func login() {
+		let identifier = state.username.trimmingCharacters(in: .whitespacesAndNewlines)
+		guard !identifier.isEmpty else {
+			state.status = .error(code: 1, message: "Vui lòng nhập email hoặc MSSV.")
+			return
+		}
+
+		guard !state.password.isEmpty else {
+			state.status = .error(code: 1, message: "Vui lòng nhập mật khẩu.")
+			return
+		}
+
 		state.status = .loading
 		
-		authService.login(with: .usernameAndPassword(username: state.username, password: state.password)) {[weak self] result in
-			DispatchQueue.main.async {
-				switch result {
-				case .success:
-					self?.state.status = .success
-					self?.onLoginSuccess?()
-				case .failure:
-					self?.state.status = .error(code: 1, message: "Login failed")
-				}
+		authService.login(with: .usernameAndPassword(username: identifier, password: state.password)) { [weak self] result in
+			switch result {
+			case let .success(user):
+				self?.savedUsersService.save(user: user)
+				self?.changeAccount(user: user)
+				self?.state.status = .success
+				self?.onLoginSuccess?()
+			case let .failure(error):
+				self?.state.status = .error(code: 1, message: self?.errorMessage(for: error) ?? error.fallbackMessage)
 			}
 		}
 	}
@@ -43,5 +54,14 @@ final class LoginStore : ObservableObject {
 		state.loggedAccountName = user.displayName
 		state.username = user.email
 		state.avatarURL = user.avatarURL
+	}
+
+	private func errorMessage(for error: AuthError) -> String {
+		switch error {
+		case .invalidCredentials:
+			return "Thông tin đăng nhập không đúng."
+		default:
+			return error.fallbackMessage
+		}
 	}
 }

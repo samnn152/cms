@@ -42,8 +42,7 @@ struct ResetPasswordFormView: View {
 	
 	var body: some View {
 		VStack(spacing: 8) {
-			Circle()
-				.frame(width: 96, height: 96)
+			UserAvatarView(avatarURL: store.state.avatarURL, size: 96)
 			if loggedAccountName != nil {
 				HStack(spacing: 4) {
 					Text(loggedAccountName!)
@@ -58,6 +57,8 @@ struct ResetPasswordFormView: View {
 		}
 		VStack(spacing: 8) {
 			TextField("Email hoặc MSSV", text: $store.state.username)
+				.textInputAutocapitalization(.never)
+				.autocorrectionDisabled()
 				.frame(height: 40)
 			if store.state.step == .submitNewPassword {
 				VStack(spacing: 8) {
@@ -69,10 +70,10 @@ struct ResetPasswordFormView: View {
 				}
 			}
 			Button(submitButtonLabel) {
-				Task {
-					await store.submitStep()
-				}
-			}.buttonStyle(.borderedProminent)
+				store.submitStep()
+			}
+			.buttonStyle(.borderedProminent)
+			.disabled(store.state.status.isLoading)
 		}
 	}
 }
